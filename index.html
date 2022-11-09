@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drag-n-drop File Uploading</title>
+    <style>
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+        body {
+            padding: 0;
+            margin: 0;
+        }
+        #dropzone{
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 1000px;
+            height: 300px;
+            border: 5px dashed #eee;
+            text-align: center;
+            font-size: 40px;
+            line-height: 100px;
+            padding: 16px;
+            transition: .5s;
+            margin: auto;
+			animation-duration: 1s;
+			animation-fill-mode: forwards;
+			animation-iteration-count: infinite;
+        }
+        /* #fileslbl {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 25vh;
+            width: 25vh;
+            background-color: red;
+            color: white;
+            padding: 16px;
+            text-align: center;
+            transition: .5s;
+			animation-duration: 1s;
+			animation-fill-mode: forwards;
+			animation-iteration-count: infinite;
+        } */
+        #filesfld {
+            display: none;
+        }
+        #progress {
+            width: 0;
+            background-color: yellow;
+            color: blue;
+            font-weight: bold;
+            font-size: 14px;
+            line-height: 25px;
+            padding: 0 5px;
+        }
+
+    </style>
+    <script type="text/javascript">
+        function stopDefault(event) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        function dragOver(label, text) {
+            label.innerText = text;
+        }
+        function dragLeave(label) {
+            /* THIS SHOULD REMOVE ALL STYLING BY dragOver() */
+			var len = label.style.length;
+            for(var i = 0; i < len; i++) {
+				label.style[label.style[i]] = "";
+            }
+            label.innerText = "Drop schedule xlsx file here (or click to open it)";
+        }
+        function addFilesAndSubmit(event) {
+            var files = event.target.files || event.dataTransfer.files;
+            document.getElementById("filesfld").files = files;
+            submitFilesForm(document.getElementById("filesfrm"));
+        }
+        function submitFilesForm(form) {
+            var label = document.getElementById("dropzone");
+            dragOver(label, "Uploading images..."); // set the drop zone text and styling
+            var fd = new FormData();
+            for(var i = 0; i < form.filesfld.files.length; i++) {
+                var field = form.filesfld;
+                fd.append(field.name, field.files[i], field.files[i].name);
+            }
+            var progress = document.getElementById("progress");
+            var x = new XMLHttpRequest();
+            if(x.upload) {
+                x.upload.addEventListener("progress", function(event){
+                    var percentage = parseInt(event.loaded / event.total * 100);
+                    progress.innerText = progress.style.width = percentage + "%";
+                });
+            }
+            x.onreadystatechange = function () {
+                if(x.readyState == 4) {
+                    progress.innerText = progress.style.width = "";
+                    form.filesfld.value = "";
+                    dragLeave(label); // this will reset the text and styling of the drop zone
+                    if(x.status == 200) {
+                        var sheets = JSON.parse(x.responseText);
+                        for(var i = 0; i < sheets.length; i++) {
+                            var sheet = document.createElement("sheet");
+                            sheet.src = sheets[i];
+                            document.body.appendChild(sheet);
+                        }
+                    }
+                    else {
+                        // failed - TODO: Add code to handle server errors
+                    }
+                }
+            };
+            x.open("post", form.action, true);
+            x.send(fd);
+            return false;
+        }
+    </script>
+</head>
+<body>
+    <img src="workAroundLogo.svg" width="150"/>
+    <form id="filesfrm" action="/upload" method="post" onsubmit="return submitFilesForm(this);">
+        <input type="file" name="filesfld" id="filesfld" accept="image/*" onchange="submitFilesForm(this.form);" multiple />
+        <label for="filesfld" id="dropzone"
+        ondragover="stopDefault(event);dragOver(this, 'Drop the images to upload them.');"
+        ondragenter="stopDefault(event);dragOver(this, 'Drop the images to upload them.');"
+        ondragleave="stopDefault(event);dragLeave(this);"
+        ondrop="stopDefault(event);dragLeave(this);addFilesAndSubmit(event);">Drop schedule xlsx file here (or click to open it)</label>
+    </form>
+    <div style="text-align: left;"><div id="progress"></div></div>
+</body>
+</html>
