@@ -1,65 +1,36 @@
+//WorkAround's website to upload schedules uploaded from workday. 
+
+//Accomplishes goal by first having user upload xlsx file, then the server will download it and parse through it and finally 
+//send it to our dataservice. TODO: include dataservice endpoint
 const express = require("express");
 const upload = require("express-fileupload");
 const path = require("path");
 const XLSX = require('xlsx');
 
+//app setup
 const app = express();
-
-
-// middleware
 app.use(express.json());
 app.use(express.urlencoded( { extended: false } )); // this is to handle URL encoded data
 app.use(upload());
+app.use(express.static(path.join(__dirname, "public"))); // enable static files pointing to the folder "public
 
-
-
-// enable static files pointing to the folder "public"
-app.use(express.static(path.join(__dirname, "public")));
-
+//sending index.html to user's browser
 app.get('', (req, res) => {
     res.sendFile(__dirname + '/index.html')
 })
 
-function ec(r, c){
-    return XLSX.utils.encode_cell({r:r,c:c});
-}
-
-function delete_row(ws, row_index){
-    var variable = XLSX.utils.decode_range(ws["!ref"])
-    for(var R = row_index; R < variable.e.r; ++R){
-        for(var C = variable.s.c; C <= variable.e.c; ++C){
-            ws[ec(R,C)] = ws[ec(R+1,C)];
-        }
-    }
-    variable.e.r--
-    ws['!ref'] = XLSX.utils.encode_range(variable.s, variable.e);
-}
+//TODO: this function doesn't work as intended!!!
+//the xlsx that is output from workday has a blank row that seems to break this function 
+//this is known because you can manually delete that first row and everything runs great
 function parsexlsx(filename) {
-    //Read the Excel File data 
-    const workbook = XLSX.readFile(filename)
-    const ws = workbook.Sheets[workbook.SheetNames[0]];
-    ////
-    var cell = XLSX.utils.decode_cell('A3');
-    console.log(ws[cell]);
-    var variable = XLSX.utils.decode_range(ws["!ref"]);
-    console.log(variable);
-    for(var R = 1; R < variable.e.r; ++R){
-        for(var C = variable.s.c; C <= variable.e.c; ++C){
-            ws[ec(R,C)] = ws[ec(R+1,C)];
-        }
-    }
-    variable.e.r--
-    ws['!ref'] = XLSX.utils.encode_range(variable.s, variable.e);
-    ////
-    var info = XLSX.utils.sheet_to_json(ws);
-    console.log(info);
-    console.log(XLSX.utils.sheet_to_row_object_array(ws)[0]);
-    console.log(XLSX.utils.sheet_to_txt(ws));
-    console.log(XLSX.utils.sheet_to_txt(ws));
+    const workbook = XLSX.readFile(filename)            //Read the Excel File data 
+    const ws = workbook.Sheets[workbook.SheetNames[0]]; //get first sheet in xlsx page
+    // TODO:json doesn't accurate reflect data in page, values get mixed up. Will mostl likely need to parse a .csv or .txt
+    var info = XLSX.utils.sheet_to_json(ws);            //turns the first sheet into a json 
+    console.log(info);                                  //outputs info to the console log
 }
 
-// HTTP POST
-// upload image files to server
+// receives file from user's browser and downloads it to home folder
 app.post("/upload", function(request, response) {
     var files = new Array();
     if(request.files) {
@@ -76,14 +47,13 @@ app.post("/upload", function(request, response) {
                 files[i] = "/" + file.name;
                 file.mv("." + files[i], function (err) {
                     if(err) {
-                        console.log(err);
+                        console.log(err);   //throws error if something goes wrong
                     }
                 });
         }
     }
-    // give the server a second to write the files
-    setTimeout(function(){response.json(files);}, 1000);
-    //!!!TODO ADD A FUNC TO SLEEP FOR SOME TIME SO THAT XLSX CAN DOWNLOAD
+    setTimeout(function(){response.json(files);}, 1000);   // give the server a second to write the files
+    //TODO: ADD A FUNC TO SLEEP FOR SOME TIME SO THAT XLSX CAN DOWNLOAD. Currently, the program only works when file is already downloaded
     arr.forEach(item => parsexlsx(item.name));
 });
 
