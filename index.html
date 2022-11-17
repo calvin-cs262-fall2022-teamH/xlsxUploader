@@ -14,14 +14,18 @@
         }
         #dropzone{
             display: flex;
+            position: absolute;
+            top: 30%;
+            left: 10%;
             align-items: center;
             justify-content: center;
-            width: 1000px;
-            height: 300px;
-            border: 5px dashed #eee;
+            width: 80%;
+            height: 30vh;
+            border: 3px solid #F38C00;
+            box-shadow: 0px 0px 7px #0167AB;
             text-align: center;
             font-size: 40px;
-            line-height: 100px;
+            line-height: 10vh;
             padding: 16px;
             transition: .5s;
             margin: auto;
@@ -29,6 +33,12 @@
 			animation-fill-mode: forwards;
 			animation-iteration-count: infinite;
         }
+        #logo{
+            width: 15%;
+            position: absolute;
+            left: 42.5%
+        }
+
         /* #fileslbl {
             display: flex;
             align-items: center;
@@ -49,10 +59,13 @@
         }
         #progress {
             width: 0;
-            background-color: yellow;
-            color: blue;
+            position: absolute;
+            top: 70%;
+            background-color: #F38C00;
+            color: white;
+            text-align: center;
             font-weight: bold;
-            font-size: 14px;
+            font-size: 3vh;
             line-height: 25px;
             padding: 0 5px;
         }
@@ -72,7 +85,7 @@
             for(var i = 0; i < len; i++) {
 				label.style[label.style[i]] = "";
             }
-            label.innerText = "Drop schedule xlsx file here (or click to open it)";
+            label.innerText = "Schedule Submitted!";
         }
         function addFilesAndSubmit(event) {
             var files = event.target.files || event.dataTransfer.files;
@@ -120,14 +133,14 @@
     </script>
 </head>
 <body>
-    <img src="workAroundLogo.svg" width="150"/>
+    <img src="workAroundLogo.svg" alt="WorkAround" id="logo"/>
     <form id="filesfrm" action="/upload" method="post" onsubmit="return submitFilesForm(this);">
-        <input type="file" name="filesfld" id="filesfld" accept="image/*" onchange="submitFilesForm(this.form);" multiple />
+        <input type="file" name="filesfld" id="filesfld" accept=".xlsx" onchange="submitFilesForm(this.form);" multiple />
         <label for="filesfld" id="dropzone"
-        ondragover="stopDefault(event);dragOver(this, 'Drop the images to upload them.');"
-        ondragenter="stopDefault(event);dragOver(this, 'Drop the images to upload them.');"
+        ondragover="stopDefault(event);dragOver(this, 'Drop the file to upload it.');"
+        ondragenter="stopDefault(event);dragOver(this, 'Drop the file to upload it.');"
         ondragleave="stopDefault(event);dragLeave(this);"
-        ondrop="stopDefault(event);dragLeave(this);addFilesAndSubmit(event);">Drop schedule xlsx file here (or click to open it)</label>
+        ondrop="stopDefault(event);dragLeave(this);addFilesAndSubmit(event);">Drop schedule .xlsx file here<br>(or click to open it)</label>
     </form>
     <div style="text-align: left;"><div id="progress"></div></div>
 </body>
