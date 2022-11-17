@@ -12,10 +12,54 @@
             padding: 0;
             margin: 0;
         }
+        #logo{
+            width: 15%;
+            position: absolute;
+            left: 42.5%
+        }
+        #filesfld {
+            display: none;
+        }
+        #instructions-header{
+            font-size: 3vh;
+            text-align: center;
+            justify-content: center;
+            width: 100%;
+            position: absolute;
+            top: 15%;
+            color: #F38C00;
+        }
+        #instructions-dir{
+            font-size: 3vh;
+            text-align: center;
+            justify-content: center;
+            width: 100%;
+            position: absolute;
+            top: 20%;
+            color: #F38C00;
+        }
+
+        #rules{
+            font-size: 5vh;
+            text-align: center;
+            justify-content: center;
+            width: 100%;
+            position: absolute;
+            top: 50%;
+            color: red;
+            font-weight: bold;
+            text-decoration: underline;
+        }
+        #instr-img{
+            width: 30vw;
+            position: relative;
+            bottom: 35px;
+            z-index: -10;
+        }
         #dropzone{
             display: flex;
             position: absolute;
-            top: 30%;
+            top: 65%;
             left: 10%;
             align-items: center;
             justify-content: center;
@@ -24,43 +68,19 @@
             border: 3px solid #F38C00;
             box-shadow: 0px 0px 7px #0167AB;
             text-align: center;
-            font-size: 40px;
+            font-size: 6vh;
             line-height: 10vh;
             padding: 16px;
             transition: .5s;
             margin: auto;
-			animation-duration: 1s;
-			animation-fill-mode: forwards;
-			animation-iteration-count: infinite;
-        }
-        #logo{
-            width: 15%;
-            position: absolute;
-            left: 42.5%
-        }
-
-        /* #fileslbl {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 25vh;
-            width: 25vh;
-            background-color: red;
-            color: white;
-            padding: 16px;
-            text-align: center;
-            transition: .5s;
-			animation-duration: 1s;
-			animation-fill-mode: forwards;
-			animation-iteration-count: infinite;
-        } */
-        #filesfld {
-            display: none;
+            animation-duration: 1s;
+            animation-fill-mode: forwards;
+            animation-iteration-count: infinite;
         }
         #progress {
             width: 0;
             position: absolute;
-            top: 70%;
+            top: 95%;
             background-color: #F38C00;
             color: white;
             text-align: center;
@@ -134,6 +154,15 @@
 </head>
 <body>
     <img src="workAroundLogo.svg" alt="WorkAround" id="logo"/>
+    <p id="instructions-header">To upload schedule to WorkAround: </p>
+    <ol id="instructions-dir">
+        <p>1. Login to
+            <a href="https://workday.calvin.edu/?_ga=2.248284099.552194930.1668644700-446776349.1662467520"
+            target="_blank"> WorkDay</a> on a computer.</p>
+        <p>2. Menu > Academics > View My Courses > Download XLSX file (see photo)</p>
+        <img id="instr-img" src="instruction.jpg" alt="Download XLSX for schedule, not entire page">
+    </ol>
+    <p id="rules">Reminder: Must delete the first (blank) row of .xlsx file before submitting.</p>
     <form id="filesfrm" action="/upload" method="post" onsubmit="return submitFilesForm(this);">
         <input type="file" name="filesfld" id="filesfld" accept=".xlsx" onchange="submitFilesForm(this.form);" multiple />
         <label for="filesfld" id="dropzone"

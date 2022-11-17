@@ -28,9 +28,13 @@ app.get("", (req, res) => {
  *          - ...
  */
 function parsexlsx(filename) {
-  const workbook = XLSX.readFile(filename); //Read the Excel File data
+  const workbook = XLSX.readFile(filename, { sheetStubs: false }); //Read the Excel File data
   const ws = workbook.Sheets[workbook.SheetNames[0]]; //get first sheet in xlsx page
-  var info = XLSX.utils.sheet_to_json(ws, { header: 1, blankrows: false }); //turns the first sheet into a json
+  var info = XLSX.utils.sheet_to_json(ws, {
+    header: 1,
+    blankrows: false,
+    skipHeader: true,
+  }); //turns the first sheet into a json
   console.log(info); //log info to test
 }
 
