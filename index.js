@@ -19,7 +19,7 @@ app.get("", (req, res) => {
   res.sendFile(__dirname + "/index.html");
 });
 
-/** (works with deleted first line)
+/** (works with deleted first row)
  * ParseXLSX function takes WorkDay Schedule and turns
  * data into an array of arrays where:
  *          - info[0] is attributes
