@@ -1,176 +1,196 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Drag-n-drop File Uploading</title>
-    <style>
-        *, *::before, *::after {
-            box-sizing: border-box;
-        }
-        body {
-            padding: 0;
-            margin: 0;
-        }
-        #logo{
-            width: 15%;
-            position: absolute;
-            left: 42.5%
-        }
-        #filesfld {
-            display: none;
-        }
-        #instructions-header{
-            font-size: 3vh;
-            text-align: center;
-            justify-content: center;
-            width: 100%;
-            position: absolute;
-            top: 15%;
-            color: #F38C00;
-        }
-        #instructions-dir{
-            font-size: 3vh;
-            text-align: center;
-            justify-content: center;
-            width: 100%;
-            position: absolute;
-            top: 20%;
-            color: #F38C00;
-        }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Drag-n-drop File Upload</title>
 
-        #rules{
-            font-size: 5vh;
-            text-align: center;
-            justify-content: center;
-            width: 100%;
-            position: absolute;
-            top: 50%;
-            color: red;
-            font-weight: bold;
-            text-decoration: underline;
-        }
-        #instr-img{
-            width: 30vw;
-            position: relative;
-            bottom: 35px;
-            z-index: -10;
-        }
-        #dropzone{
-            display: flex;
-            position: absolute;
-            top: 65%;
-            left: 10%;
-            align-items: center;
-            justify-content: center;
-            width: 80%;
-            height: 30vh;
-            border: 3px solid #F38C00;
-            box-shadow: 0px 0px 7px #0167AB;
-            text-align: center;
-            font-size: 6vh;
-            line-height: 10vh;
-            padding: 16px;
-            transition: .5s;
-            margin: auto;
-            animation-duration: 1s;
-            animation-fill-mode: forwards;
-            animation-iteration-count: infinite;
-        }
-        #progress {
-            width: 0;
-            position: absolute;
-            top: 95%;
-            background-color: #F38C00;
-            color: white;
-            text-align: center;
-            font-weight: bold;
-            font-size: 3vh;
-            line-height: 25px;
-            padding: 0 5px;
-        }
-
-    </style>
     <script type="text/javascript">
-        function stopDefault(event) {
-            event.preventDefault();
-            event.stopPropagation();
+      function stopDefault(event) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+      function dragOver(label, text) {
+        label.innerText = text;
+      }
+      function dragLeave(label) {
+        /* THIS SHOULD REMOVE ALL STYLING BY dragOver() */
+        var len = label.style.length;
+        for (var i = 0; i < len; i++) {
+          label.style[label.style[i]] = "";
         }
-        function dragOver(label, text) {
-            label.innerText = text;
+        label.innerText = "Schedule Submitted!";
+      }
+      function addFilesAndSubmit(event) {
+        var files = event.target.files || event.dataTransfer.files;
+        document.getElementById("filesfld").files = files;
+        submitFilesForm(document.getElementById("filesfrm"));
+      }
+      function submitFilesForm(form) {
+        var label = document.getElementById("dropzone");
+        dragOver(label, "Uploading images..."); // set the drop zone text and styling
+        var fd = new FormData();
+        for (var i = 0; i < form.filesfld.files.length; i++) {
+          var field = form.filesfld;
+          fd.append(field.name, field.files[i], field.files[i].name);
         }
-        function dragLeave(label) {
-            /* THIS SHOULD REMOVE ALL STYLING BY dragOver() */
-			var len = label.style.length;
-            for(var i = 0; i < len; i++) {
-				label.style[label.style[i]] = "";
+        var progress = document.getElementById("progress");
+        var x = new XMLHttpRequest();
+        if (x.upload) {
+          x.upload.addEventListener("progress", function (event) {
+            var percentage = parseInt((event.loaded / event.total) * 100);
+            progress.innerText = progress.style.width = percentage + "%";
+          });
+        }
+        x.onreadystatechange = function () {
+          if (x.readyState == 4) {
+            progress.innerText = progress.style.width = "";
+            form.filesfld.value = "";
+            dragLeave(label); // this will reset the text and styling of the drop zone
+            if (x.status == 200) {
+              var sheets = JSON.parse(x.responseText);
+              for (var i = 0; i < sheets.length; i++) {
+                var sheet = document.createElement("sheet");
+                sheet.src = sheets[i];
+                document.body.appendChild(sheet);
+              }
+            } else {
+              // failed - TODO: Add code to handle server errors
             }
-            label.innerText = "Schedule Submitted!";
-        }
-        function addFilesAndSubmit(event) {
-            var files = event.target.files || event.dataTransfer.files;
-            document.getElementById("filesfld").files = files;
-            submitFilesForm(document.getElementById("filesfrm"));
-        }
-        function submitFilesForm(form) {
-            var label = document.getElementById("dropzone");
-            dragOver(label, "Uploading images..."); // set the drop zone text and styling
-            var fd = new FormData();
-            for(var i = 0; i < form.filesfld.files.length; i++) {
-                var field = form.filesfld;
-                fd.append(field.name, field.files[i], field.files[i].name);
-            }
-            var progress = document.getElementById("progress");
-            var x = new XMLHttpRequest();
-            if(x.upload) {
-                x.upload.addEventListener("progress", function(event){
-                    var percentage = parseInt(event.loaded / event.total * 100);
-                    progress.innerText = progress.style.width = percentage + "%";
-                });
-            }
-            x.onreadystatechange = function () {
-                if(x.readyState == 4) {
-                    progress.innerText = progress.style.width = "";
-                    form.filesfld.value = "";
-                    dragLeave(label); // this will reset the text and styling of the drop zone
-                    if(x.status == 200) {
-                        var sheets = JSON.parse(x.responseText);
-                        for(var i = 0; i < sheets.length; i++) {
-                            var sheet = document.createElement("sheet");
-                            sheet.src = sheets[i];
-                            document.body.appendChild(sheet);
-                        }
-                    }
-                    else {
-                        // failed - TODO: Add code to handle server errors
-                    }
-                }
-            };
-            x.open("post", form.action, true);
-            x.send(fd);
-            return false;
-        }
+          }
+        };
+        x.open("post", form.action, true);
+        x.send(fd);
+        return false;
+      }
     </script>
-</head>
-<body>
-    <img src="workAroundLogo.svg" alt="WorkAround" id="logo"/>
-    <p id="instructions-header">To upload schedule to WorkAround: </p>
-    <ol id="instructions-dir">
-        <p>1. Login to
-            <a href="https://workday.calvin.edu/?_ga=2.248284099.552194930.1668644700-446776349.1662467520"
-            target="_blank"> WorkDay</a> on a computer.</p>
-        <p>2. Menu > Academics > View My Courses > Download XLSX file (see photo)</p>
-        <img id="instr-img" src="instruction.jpg" alt="Download XLSX for schedule, not entire page">
-    </ol>
-    <p id="rules">Reminder: Must delete the first (blank) row of .xlsx file before submitting.</p>
-    <form id="filesfrm" action="/upload" method="post" onsubmit="return submitFilesForm(this);">
-        <input type="file" name="filesfld" id="filesfld" accept=".xlsx" onchange="submitFilesForm(this.form);" multiple />
-        <label for="filesfld" id="dropzone"
+  </head>
+  <body>
+    <img src="workAroundLogo.svg" alt="WorkAround" id="logo" />
+
+    <div id="instructions">
+      <p>
+        To upload schedule to WorkAround:<br>
+        1.) Login to
+        <a href="https://workday.calvin.edu/?_ga=2.248284099.552194930.1668644700-446776349.1662467520" target="_blank">WorkDay</a>
+        on a computer.<br><br>
+        2.) Menu > Academics > View My Courses > Download XLSX file (see photo)<br><br>
+        3.) Delete first row of XLSX file, save, and submit below. (Extra help <a href="https://www.excel-easy.com/examples/delete-row.html" target="_blank"> here</a>)
+      </p>
+      <img id="instr-img" src="instruction.jpg" alt="Download XLSX for schedule, not entire page"/>
+    </div>
+
+    <p id="rules">
+      Critical: Must delete the first (blank) row of .xlsx file before submitting.
+    </p>
+
+    <form
+      id="filesfrm"
+      action="/upload"
+      method="post"
+      onsubmit="return submitFilesForm(this);"
+    >
+      <input
+        type="file"
+        name="filesfld"
+        id="filesfld"
+        accept=".xlsx"
+        onchange="submitFilesForm(this.form);"
+        multiple
+      />
+      <label
+        for="filesfld"
+        id="dropzone"
         ondragover="stopDefault(event);dragOver(this, 'Drop the file to upload it.');"
         ondragenter="stopDefault(event);dragOver(this, 'Drop the file to upload it.');"
         ondragleave="stopDefault(event);dragLeave(this);"
-        ondrop="stopDefault(event);dragLeave(this);addFilesAndSubmit(event);">Drop schedule .xlsx file here<br>(or click to open it)</label>
+        ondrop="stopDefault(event);dragLeave(this);addFilesAndSubmit(event);"
+        >Drop schedule .xlsx file here<br />(or click to open it)</label
+      >
     </form>
-    <div style="text-align: left;"><div id="progress"></div></div>
-</body>
+    <div style="text-align: left"><div id="progress"></div></div>
+  </body>
 </html>
+
+<style>
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+  body {
+    padding: 0;
+    margin: 0;
+  }
+  #logo {
+    width: 15%;
+    position: absolute;
+    left: 42.5%;
+  }
+  #filesfld {
+    display: none;
+  }
+  #instructions {
+    font-size: 3vh;
+    text-align: center;
+    justify-content: center;
+    width: 100%;
+    position: absolute;
+    top: 15%;
+    color: rgb(15, 15, 15);
+    border:#f38c00;
+    border-width: 1px;
+    border-style: solid;
+  }
+
+  #rules {
+    font-size: 5vh;
+    text-align: center;
+    justify-content: center;
+    width: 100%;
+    position: absolute;
+    bottom: 20%;
+    color: red;
+    font-weight: bold;
+    text-decoration: underline;
+  }
+  #instr-img {
+    width: 30vw;
+    position: relative;
+    bottom: 35px;
+    z-index: -10;
+  }
+  #dropzone {
+    display: flex;
+    position: absolute;
+    bottom: 2.5%;
+    left: 10%;
+    align-items: center;
+    justify-content: center;
+    width: 80%;
+    height: 20vh;
+    border: 3px solid #f38c00;
+    box-shadow: 0px 0px 7px #0167ab;
+    text-align: center;
+    font-size: 6vh;
+    line-height: 10vh;
+    padding: 16px;
+    transition: 0.5s;
+    margin: auto;
+    animation-duration: 1s;
+    animation-fill-mode: forwards;
+    animation-iteration-count: infinite;
+  }
+  #progress {
+    width: 0;
+    position: absolute;
+    top: 95%;
+    background-color: #f38c00;
+    color: white;
+    text-align: center;
+    font-weight: bold;
+    font-size: 3vh;
+    line-height: 25px;
+    padding: 0 5px;
+  }
+</style>
