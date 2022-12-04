@@ -43,7 +43,8 @@ function getMilitary(startTime, startMeridian, endTime, endMeridian){
  *          - info[2] is 2nd event
  *          - ...
  */
-async function parsexlsx(filename) {
+ async function parsexlsx(filename) {
+  await new Promise(r => setTimeout(r, 5000));
   const workbook = XLSX.readFile(filename, { sheetStubs: false }); //Read the Excel File data
   const ws = workbook.Sheets[workbook.SheetNames[0]]; //get first sheet in xlsx page
   var info = XLSX.utils.sheet_to_json(ws, {
@@ -60,7 +61,7 @@ async function parsexlsx(filename) {
   console.log(semesterYear);
   var studentIDNum = '2012298'; //IMPORTANT FOR TESTING: change this number, its a unique id but is constant in program
   var schedNum = semesterYear.length-8;//since Fall and Spring have dif length, this tries to get a number to tell which schedule is which for unique ID purposes
-  var schedID = schedNum.toString() +semesterYear.substring(2,4)+studentIDNum[3];//makes unique id that takes into account schedule and user (but mushing them is too big a number apparently)
+  var schedID = schedNum.toString() +semesterYear.substring(2,4)+studentIDNum[3];//attempting to make unique id that takes into account schedule and user (but mushing them is too big a number apparently)
   // //post student to make sure they exist
   axios.post('https://workaroundservice.herokuapp.com/',{id: studentIDNum, name: student})
            .catch((error) => console.error("couldn't post student"));
@@ -93,7 +94,7 @@ async function parsexlsx(filename) {
       eventLead: info[x][9],
       scheduleID: parseInt(schedID)
     })
-      .catch((error) => console.error(error));
+      .catch((error) => console.error("failed to post event"));
 }
 }
 // receives file from user's browser and downloads it to home folder
@@ -121,7 +122,7 @@ app.post("/upload", function (request, response) {
     response.json(files);
   }, 1000); // give the server a second to write the files
   //TODO: ADD A FUNC TO SLEEP FOR SOME TIME SO THAT XLSX CAN DOWNLOAD. Currently, the program only works when file is already downloaded
-  arr.forEach(async (item) => await parsexlsx(item.name));
+  arr.forEach( (item) => parsexlsx(item.name));
 });
 
 // set port from environment variable, or 8080
