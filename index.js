@@ -6,6 +6,9 @@ const express = require("express");
 const upload = require("express-fileupload");
 const path = require("path");
 const XLSX = require("xlsx");
+const axios = require('axios');
+const { start } = require("repl");
+const { randomInt } = require("crypto");
 
 //app setup
 const app = express();
@@ -19,6 +22,20 @@ app.get("", (req, res) => {
   res.sendFile(__dirname + "/index.html");
 });
 
+//takes in [starttime, am/pm, endtime, am/pm] and returns [militarystart, militaryend]
+function getMilitary(startTime, startMeridian, endTime, endMeridian){
+  var military = [startTime, endTime];
+  if (startMeridian=='PM' && startTime.substring(0,2) != '12'){
+    if(startTime[1] ==':'){var militStart = parseInt(startTime[0])+12;}
+    else{var militStart = 10+ parseInt(startTime[1])+12;}
+    military[0] = militStart.toString()+':'+startTime[2]+startTime[3];}
+  if (endMeridian=='PM' && endTime.substring(0,2) != '12'){
+    if(endTime[1] ==':'){var militEnd = parseInt(endTime[0])+12;}
+    else{var militEnd = 10+ parseInt(endTime[1])+12;}
+    military[1] = militEnd.toString()+':'+endTime[2]+endTime[3];}
+  return military;
+}
+
 /** (works with deleted first row)
  * ParseXLSX function takes WorkDay Schedule and turns
  * data into an array of arrays where:
@@ -27,7 +44,7 @@ app.get("", (req, res) => {
  *          - info[2] is 2nd event
  *          - ...
  */
-function parsexlsx(filename) {
+async function parsexlsx(filename) {
   const workbook = XLSX.readFile(filename, { sheetStubs: false }); //Read the Excel File data
   const ws = workbook.Sheets[workbook.SheetNames[0]]; //get first sheet in xlsx page
   var info = XLSX.utils.sheet_to_json(ws, {
@@ -35,9 +52,48 @@ function parsexlsx(filename) {
     blankrows: false,
     skipHeader: true,
   }); //turns the first sheet into a json
-  console.log(info); //log info to test
-}
 
+  const nameSchedRegex = '(.*) -.*-.*-.*-.*-.*- (.*)'; //gets users name and semesterYear from first line of first class
+  var nameSched = [...info[3][0].matchAll(nameSchedRegex)];
+  var student = nameSched[0][1];
+  var semesterYear = nameSched[0][2];
+  var studentIDNum = '2012299';
+  var schedID = semesterYear.length+semesterYear.substring(0,4);
+  //post student to make sure they exist
+  axios.post('https://workaroundservice.herokuapp.com/',{id: studentIDNum, name: student})
+           .catch((error) => console.error("couldn't post student"));
+  //delete schedule if it exists
+  axios.delete('https://workaroundservice.herokuapp.com/'+student+'/'+semesterYear)
+          .catch((error) => console.error("couldn't delete schedule"));
+  //post schedule
+  await new Promise(r => setTimeout(r, 2000));
+  axios.post('https://workaroundservice.herokuapp.com/'+student, 
+    {id: parseInt(schedID), semesterYear:semesterYear, userID: studentIDNum})
+    .catch((error) => console.error("couldn't make schedule"));
+  const courseRegex = '([A-Z]+ [0-9]+)'; 
+  const dayDesStartEndLocRegex = '([A-Z]+) \\| ([0-9]+:[0-9][0-9]) ([AP]M) - ([0-9]+:[0-9][0-9]) ([AP]M) \\| (.*) - .*'; 
+  await new Promise(r => setTimeout(r, 2000));
+  var counter =0;//for some reason the thing really didn't like me passing x for eventID, the errors said that eventID wasn't unique (despite it, in fact, being unique)
+  for(var x=2; x<info.length;x++){
+    var values = [...info[x][7].matchAll(dayDesStartEndLocRegex)][0]; //[matchedString, dayDesignation, starttime, AM/PM, endtime, AM/PM, location]
+    var courseName = [...info[x][1].matchAll(courseRegex)][0];// [courseName]
+    var times = getMilitary(values[2],values[3],values[4],values[5]); //[startTime, endTime]
+    //instructor is in info[x][9]
+    counter+= 100;
+    axios.post('https://workaroundservice.herokuapp.com/'+student+'/'+semesterYear,
+    {
+      eventID: parseInt(counter),
+      name: courseName[0],
+      startTime: times[0],
+      endTime: times[1],
+      dayDesignation: values[1],
+      location: values[6],
+      eventLead: info[x][9],
+      scheduleID: parseInt(schedID)
+    })
+      .catch((error) => console.error(error));
+}
+}
 // receives file from user's browser and downloads it to home folder
 app.post("/upload", function (request, response) {
   var files = new Array();
@@ -63,7 +119,7 @@ app.post("/upload", function (request, response) {
     response.json(files);
   }, 1000); // give the server a second to write the files
   //TODO: ADD A FUNC TO SLEEP FOR SOME TIME SO THAT XLSX CAN DOWNLOAD. Currently, the program only works when file is already downloaded
-  arr.forEach((item) => parsexlsx(item.name));
+  arr.forEach(async (item) => await parsexlsx(item.name));
 });
 
 // set port from environment variable, or 8080
