@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Drag-n-drop File Upload</title>
-
+    <link rel="stylesheet" href="styles.css">
     <script type="text/javascript">
       function stopDefault(event) {
         event.preventDefault();
@@ -70,34 +70,21 @@
 
     <div id="instructions">
       <p>
-        To upload schedule to WorkAround:<br>
+        To upload schedule to WorkAround:<br><br>
         1.) Login to
         <a href="https://workday.calvin.edu/?_ga=2.248284099.552194930.1668644700-446776349.1662467520" target="_blank">WorkDay</a>
         on a computer.<br><br>
-        2.) Menu > Academics > View My Courses > Download XLSX file (see photo)<br><br>
-        3.) Delete first row of XLSX file, save, and submit below. (Extra help <a href="https://www.excel-easy.com/examples/delete-row.html" target="_blank"> here</a>)
+        2.) Select: Menu > Academics > View My Courses ><br>
+        &emsp;&emsp;&emsp;&emsp; Download XLSX file (see photo)<br><br>
+        3.) Delete the first row of the XLSX file, save, and submit below. <br>
+        (Extra help <a href="https://www.excel-easy.com/examples/delete-row.html" target="_blank"> here</a>)
       </p>
       <img id="instr-img" src="instruction.jpg" alt="Download XLSX for schedule, not entire page"/>
     </div>
 
-    <p id="rules">
-      Critical: Must delete the first (blank) row of .xlsx file before submitting.
-    </p>
 
-    <form
-      id="filesfrm"
-      action="/upload"
-      method="post"
-      onsubmit="return submitFilesForm(this);"
-    >
-      <input
-        type="file"
-        name="filesfld"
-        id="filesfld"
-        accept=".xlsx"
-        onchange="submitFilesForm(this.form);"
-        multiple
-      />
+    <form id="filesfrm" action="/upload" method="post" onsubmit="return submitFilesForm(this);" >
+      <input type="file" name="filesfld" id="filesfld" accept=".xlsx" onchange="submitFilesForm(this.form);" multiple/>
       <label
         for="filesfld"
         id="dropzone"
@@ -108,6 +95,7 @@
         >Drop schedule .xlsx file here<br />(or click to open it)</label
       >
     </form>
+
     <div style="text-align: left"><div id="progress"></div></div>
   </body>
 </html>
@@ -132,11 +120,14 @@
   }
   #instructions {
     font-size: 3vh;
-    text-align: center;
+    text-align: left;
     justify-content: center;
-    width: 100%;
+    width: 60%;
     position: absolute;
     top: 15%;
+    left: 20%;
+    padding-left: 5%;
+    padding-right: 5%;
     color: rgb(15, 15, 15);
     border:#f38c00;
     border-width: 1px;
@@ -150,14 +141,15 @@
     width: 100%;
     position: absolute;
     bottom: 20%;
-    color: red;
+    color: rgb(0, 0, 0);
     font-weight: bold;
     text-decoration: underline;
   }
   #instr-img {
-    width: 30vw;
+    width: 40vw;
     position: relative;
-    bottom: 35px;
+    bottom: 5vh;
+    left: 5vw;
     z-index: -10;
   }
   #dropzone {
