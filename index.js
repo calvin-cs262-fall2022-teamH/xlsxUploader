@@ -7,8 +7,7 @@ const upload = require("express-fileupload");
 const path = require("path");
 const XLSX = require("xlsx");
 const axios = require('axios');
-const { start } = require("repl");
-const { randomInt } = require("crypto");
+
 
 //app setup
 const app = express();
@@ -57,9 +56,12 @@ async function parsexlsx(filename) {
   var nameSched = [...info[3][0].matchAll(nameSchedRegex)];
   var student = nameSched[0][1];
   var semesterYear = nameSched[0][2];
-  var studentIDNum = '2012299';
-  var schedID = semesterYear.length+semesterYear.substring(0,4);
-  //post student to make sure they exist
+  console.log(student);
+  console.log(semesterYear);
+  var studentIDNum = '2012298'; //IMPORTANT FOR TESTING: change this number, its a unique id but is constant in program
+  var schedNum = semesterYear.length-8;//since Fall and Spring have dif length, this tries to get a number to tell which schedule is which for unique ID purposes
+  var schedID = schedNum.toString() +semesterYear.substring(2,4)+studentIDNum[3];//makes unique id that takes into account schedule and user (but mushing them is too big a number apparently)
+  // //post student to make sure they exist
   axios.post('https://workaroundservice.herokuapp.com/',{id: studentIDNum, name: student})
            .catch((error) => console.error("couldn't post student"));
   //delete schedule if it exists
@@ -73,7 +75,7 @@ async function parsexlsx(filename) {
   const courseRegex = '([A-Z]+ [0-9]+)'; 
   const dayDesStartEndLocRegex = '([A-Z]+) \\| ([0-9]+:[0-9][0-9]) ([AP]M) - ([0-9]+:[0-9][0-9]) ([AP]M) \\| (.*) - .*'; 
   await new Promise(r => setTimeout(r, 2000));
-  var counter =0;//for some reason the thing really didn't like me passing x for eventID, the errors said that eventID wasn't unique (despite it, in fact, being unique)
+  var counter =parseInt(studentIDNum.substring(4));//for some reason the thing really didn't like me passing x for eventID, the errors said that eventID wasn't unique (despite it, in fact, being unique)
   for(var x=2; x<info.length;x++){
     var values = [...info[x][7].matchAll(dayDesStartEndLocRegex)][0]; //[matchedString, dayDesignation, starttime, AM/PM, endtime, AM/PM, location]
     var courseName = [...info[x][1].matchAll(courseRegex)][0];// [courseName]
