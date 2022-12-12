@@ -68,6 +68,7 @@
   <body>
     <img src="workAroundLogo.svg" alt="WorkAround" id="logo" />
 
+    <!-- Instructions to download & upload schedule -->
     <div id="instructions">
       <p>
         To upload schedule to WorkAround:<br><br>
@@ -82,7 +83,7 @@
       <img id="instr-img" src="instruction.jpg" alt="Download XLSX for schedule, not entire page"/>
     </div>
 
-
+    <!-- Drag & Drop for XLSX schedule (w/o first row)  -->
     <form id="filesfrm" action="/upload" method="post" onsubmit="return submitFilesForm(this);" >
       <input type="file" name="filesfld" id="filesfld" accept=".xlsx" onchange="submitFilesForm(this.form);" multiple/>
       <label
@@ -96,10 +97,12 @@
       >
     </form>
 
+    <!-- Progress bar to show submission progress -->
     <div style="text-align: left"><div id="progress"></div></div>
   </body>
 </html>
 
+<!-- Styling for all index.html components -->
 <style>
   *,
   *::before,

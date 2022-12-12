@@ -59,7 +59,7 @@ function getMilitary(startTime, startMeridian, endTime, endMeridian){
   var semesterYear = nameSched[0][2];
   console.log(student);
   console.log(semesterYear);
-  var studentIDNum = '2012298'; //IMPORTANT FOR TESTING: change this number, its a unique id but is constant in program
+  var studentIDNum = '2012200'; //IMPORTANT FOR TESTING: change this number, its a unique id but is constant in program
   var schedNum = semesterYear.length-8;//since Fall and Spring have dif length, this tries to get a number to tell which schedule is which for unique ID purposes
   var schedID = schedNum.toString() +semesterYear.substring(2,4)+studentIDNum[3];//attempting to make unique id that takes into account schedule and user (but mushing them is too big a number apparently)
   // //post student to make sure they exist
@@ -70,11 +70,11 @@ function getMilitary(startTime, startMeridian, endTime, endMeridian){
           .catch((error) => console.error("couldn't delete schedule"));
   //post schedule
   await new Promise(r => setTimeout(r, 2000));
-  axios.post('https://workaroundservice.herokuapp.com/'+student, 
+  axios.post('https://workaroundservice.herokuapp.com/'+student,
     {id: parseInt(schedID), semesterYear:semesterYear, userID: studentIDNum})
     .catch((error) => console.error("couldn't make schedule"));
-  const courseRegex = '([A-Z]+ [0-9]+)'; 
-  const dayDesStartEndLocRegex = '([A-Z]+) \\| ([0-9]+:[0-9][0-9]) ([AP]M) - ([0-9]+:[0-9][0-9]) ([AP]M) \\| (.*) - .*'; 
+  const courseRegex = '([A-Z]+ [0-9]+)';
+  const dayDesStartEndLocRegex = '([A-Z]+) \\| ([0-9]+:[0-9][0-9]) ([AP]M) - ([0-9]+:[0-9][0-9]) ([AP]M) \\| (.*) - .*';
   await new Promise(r => setTimeout(r, 2000));
   var counter =parseInt(studentIDNum.substring(4));//for some reason the thing really didn't like me passing x for eventID, the errors said that eventID wasn't unique (despite it, in fact, being unique)
   for(var x=2; x<info.length;x++){
@@ -121,7 +121,6 @@ app.post("/upload", function (request, response) {
   setTimeout(function () {
     response.json(files);
   }, 1000); // give the server a second to write the files
-  //TODO: ADD A FUNC TO SLEEP FOR SOME TIME SO THAT XLSX CAN DOWNLOAD. Currently, the program only works when file is already downloaded
   arr.forEach( (item) => parsexlsx(item.name));
 });
 
